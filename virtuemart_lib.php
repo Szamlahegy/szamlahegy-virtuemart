@@ -92,7 +92,7 @@ function sendOrders($orders) {
     
     $i->invoice_rows_attributes = $rows;
     print_r($i);
-    /*
+    
     if ($price > 0) {
       if ($szamlahegyApi->sendNewInvoice($i)) {
         $mysqli->query("INSERT into " . TABLE_NAME . " (order_id,created_at) values (". $order->virtuemart_order_id . ",now())");
@@ -103,7 +103,7 @@ function sendOrders($orders) {
     } else {
       echo "Invoice price is zero! #" . $order->virtuemart_order_id . "\n";
       $mysqli->query("INSERT into " . TABLE_NAME . " (order_id,created_at) values (". $order->virtuemart_order_id . ",now())");
-    }*/
+    }
   }
 
   $szamlahegyApi->closeHTTPConnection();
