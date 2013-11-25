@@ -1,6 +1,7 @@
 <?php
 
 define('VIRTUEMART_CONFIG', '../../configuration.php' );
+define('API_PATH', '../szamlahegy-api');
 define('TABLE_PREFIX', 'j25_');
 define('PROCESS_LIMIT', 1 );
 define('START_DATE', '2012.07.26');

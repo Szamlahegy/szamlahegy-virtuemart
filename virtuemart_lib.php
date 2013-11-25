@@ -8,8 +8,8 @@
  **/
  
 require_once('virtuemart_config.php');
-require_once('api/classes.php');
-require_once('api/api.php');
+require_once(API_PATH . '/classes.php');
+require_once(API_PATH . '/api.php');
 require_once(VIRTUEMART_CONFIG);
 
 $jconfig = new JConfig();
