@@ -24,7 +24,7 @@ function sendOrders($orders) {
   global $mysqli;
   
   if ($orders->num_rows == 0) {
-    echo "There is no order for generate!\n";
+    echo "Nincs új megrendelés!\n";
     exit;
   }
   
@@ -32,7 +32,7 @@ function sendOrders($orders) {
   $szamlahegyApi->openHTTPConnection();
 
   while ($order = $orders->fetch_object()){
-    echo "--- Processing order #" . $order->virtuemart_order_id . "\n";
+    echo "--- Megrendelés feldolgozása #" . $order->virtuemart_order_id . "\n";
 
     $client = null;
     $client = query_one("SELECT * FROM " . VMTABLE_PREFIX . "vmusers u WHERE u.virtuemart_user_id = " . $order->virtuemart_user_id);
@@ -61,13 +61,17 @@ function sendOrders($orders) {
     $i->customer_city = $orderUserinfo->city;
     $i->customer_address = $orderUserinfo->address_1 . ' ' . $orderUserinfo->address_2;
     $i->payment_method = PAYMENT_METHOD;   
-    $i->payment_date = time();
+    $i->payment_date = date('Y-m-d');
     $i->perform_date = $i->payment_date;
 
     $i->footer = 'Megrendelés száma: #' . $order->order_number . "</br>\n";
 
     $i->customer_zip = $orderUserinfo->zip;
-    $i->kind = 'T';
+    if (TESTING) {
+      $i->kind = 'T';
+    } else {
+      $i->kind = 'N';
+    }
     $i->tag = $order->order_number;
     $i->foreign_id = $order->order_number;
     $i->paid_at = $i->payment_date;
@@ -96,12 +100,12 @@ function sendOrders($orders) {
     if ($price > 0) {
       if ($szamlahegyApi->sendNewInvoice($i)) {
         $mysqli->query("INSERT into " . TABLE_NAME . " (order_id,created_at) values (". $order->virtuemart_order_id . ",now())");
-        echo "Invoice generation successed: #" . $order->virtuemart_order_id . "\n\n";
+        echo "Sikeres számla generálás: #" . $order->virtuemart_order_id . "\n\n";
       } else {
-        echo "Error during invoice generation #" . $order->virtuemart_order_id . "\n";
+        echo "Hiba a számla generálása közben: #" . $order->virtuemart_order_id . "\n";
       }
     } else {
-      echo "Invoice price is zero! #" . $order->virtuemart_order_id . "\n";
+      echo "Nem küldtem mert a végösszeg nulla: #" . $order->virtuemart_order_id . "\n";
       $mysqli->query("INSERT into " . TABLE_NAME . " (order_id,created_at) values (". $order->virtuemart_order_id . ",now())");
     }
   }
@@ -116,6 +120,11 @@ function connectToMySql() {
       echo "Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error . "\n";
       return false;
   }
+  
+  if (!$mysqli->set_charset("utf8")) {
+    printf("Error loading character set utf8: %s\n", $mysqli->error);
+  }
+  
   return $mysqli;
 }
 
@@ -138,7 +147,7 @@ function sendOrder($id) {
    
   $generated = query_all("SELECT * FROM " . TABLE_NAME . " t WHERE t.order_id = " . $id);
   if ($generated->num_rows != 0) {
-    echo "Invoice already generated!\n";
+    echo "Ez a számla már át lett küldve a Számlahegynek!\n";
     exit;
   }
   
